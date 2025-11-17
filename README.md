@@ -1,27 +1,33 @@
 # QuarkClinic – Automação de Testes E2E com Cypress
 
-Este repositório contém a automação E2E da jornada de agendamento online da QuarkClinic, desenvolvida como parte da atividade prática do processo seletivo para a vaga de QA – Automação.
+Este repositório contém a automação E2E do fluxo completo de agendamento da plataforma QuarkClinic, desenvolvida como parte da atividade prática do processo seletivo para a vaga de QA – Automação.
 
-A automação cobre:
+Os testes cobrem:
 
 1. Cadastro de novo usuário  
 2. Login de usuário existente  
 3. Agendamento de consulta presencial  
-4. Envio de comprovante de pagamento por transferência bancária
+4. Envio de comprovante de pagamento
 
 ---
 
 ## Descrição Geral
 
-O objetivo do projeto é validar, de ponta a ponta, o fluxo real de um paciente no portal de agendamento, desde a criação da conta até a finalização do pagamento, utilizando Cypress.
+O projeto valida, de ponta a ponta, o fluxo real de um paciente dentro do sistema:
 
-Foram utilizados:
+- criação de conta  
+- autenticação  
+- seleção do tipo de consulta  
+- escolha de convênio, especialidade, clínica e horário  
+- envio de comprovante de pagamento  
 
-- Interações com a interface  
-- Validações de URL e textos  
-- Interceptação de requisições HTTP com `cy.intercept`  
-- Upload de arquivo com `cy.selectFile`  
-- Sincronização com backend usando `cy.wait`  
+Os testes utilizam boas práticas essenciais, como:
+
+- seletor data-cy  
+- interceptação de requisições  
+- waits baseados em API  
+- upload de arquivo  
+- validações de URL e mensagens  
 
 ---
 
@@ -53,42 +59,73 @@ qa-esig/
 
 ---
 
+# Explicações Importantes dos Fluxos
+
+## Funcionamento da seleção automática (especialidade e clínica)
+
+Ao selecionar o convênio “PARTICULAR”, o sistema realiza automaticamente:
+
+1. busca das especialidades  
+2. navegação para clínica  
+3. navegação para horários  
+
+Isso acontece porque a API retorna apenas uma opção disponível no momento, e o sistema avança sozinho para a próxima etapa.
+
+O teste valida apenas a navegação:
+
+```
+cy.url().should("include", "/especialidade")
+cy.url().should("include", "/clinica")
+cy.url().should("include", "/agendar")
+```
+
+---
+
+## Como o teste seleciona horário disponível
+
+Os horários mudam constantemente, então o teste usa:
+
+```
+cy.get('[data-cy^="agenda-item-horario-"]:visible', { timeout: 15000 })
+  .first()
+  .click({ force: true })
+```
+
+Isso garante que:
+
+- sempre haverá um horário selecionável  
+- o teste não depende de datas fixas  
+- a execução acompanha a agenda real da clínica  
+
+---
+
 ## Fluxos Automatizados
 
 ### Fluxo 1 – Cadastro de Novo Usuário
-- Acessa a home  
-- Abre o modal de cadastro  
-- Preenche dados pessoais  
-- Preenche documento  
-- Preenche senha e confirmação  
-- Marca aceite dos termos  
-- Envia a requisição  
-- Valida código de resposta e mensagem de boas-vindas  
+- abre modal  
+- preenche os campos  
+- cria conta  
+- valida área logada  
 
 ### Fluxo 2 – Login
-- Abre o modal de login  
-- Preenche e-mail e senha  
-- Marca aceite das políticas  
-- Envia o formulário  
-- Aguarda resposta da API com sucesso  
-- Valida entrada na área logada  
+- abre modal  
+- preenche email e senha  
+- intercepta e valida login  
 
 ### Fluxo 3 – Agendamento de Consulta
-- Clica em “Consulta presencial”  
-- Seleciona convênio  
-- Seleciona especialidade  
-- Seleciona clínica  
-- Seleciona horário disponível  
-- Seleciona o paciente  
-- Valida dados na tela de confirmação  
-- Confirma o agendamento  
+- seleciona convênio  
+- sistema avança sozinho para especialidade e clínica  
+- seleciona primeiro horário disponível  
+- seleciona paciente  
+- confirma dados  
+- envia agendamento  
 
 ### Fluxo 4 – Envio de Comprovante
-- Acessa a tela de pagamento  
-- Seleciona arquivo de comprovante  
-- Preenche observação  
-- Envia o comprovante  
-- Valida mensagem de sucesso  
+- acessa tela de pagamento  
+- faz upload  
+- insere observação  
+- envia formulário  
+- valida mensagem  
 
 ---
 
