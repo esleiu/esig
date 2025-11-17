@@ -67,7 +67,7 @@ Ao selecionar o convênio “PARTICULAR”, o sistema realiza automaticamente:
 
 1. busca das especialidades  
 2. navegação para clínica  
-3. navegação para horários  
+
 
 Isso acontece porque a API retorna apenas uma opção disponível no momento, e o sistema avança sozinho para a próxima etapa.
 
@@ -76,7 +76,6 @@ O teste valida apenas a navegação:
 ```
 cy.url().should("include", "/especialidade")
 cy.url().should("include", "/clinica")
-cy.url().should("include", "/agendar")
 ```
 
 ---
